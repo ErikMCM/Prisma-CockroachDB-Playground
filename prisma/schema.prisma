@@ -1,0 +1,56 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String        @id @default(uuid())
+  email       String        @unique
+  name        String
+  twofactor   Boolean       @default(false)
+  banned      Boolean       @default(false)
+  age         Int?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  settings    UserSettings?
+  phoneNumber String        @default("")
+  audits      Audit[]
+}
+
+model UserSettings {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  theme     Theme    @default(dark)
+}
+
+enum Theme {
+  dark
+  light
+}
+
+model Audit {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  action      Action   @default(unknown)
+  description String?
+}
+
+enum Action {
+  unknown
+  login
+  logout
+  modify
+}
